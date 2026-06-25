@@ -21,6 +21,20 @@ Always follow this order — skipping `spec` leads to guessing wrong iids:
 4. `miloco-lite control <did> <siid.piid> <value> [...]` — change it
 5. `miloco-lite props <did> <siid.piid>` — **read back to confirm** (do NOT trust step 4's code)
 
+## Login (first time only)
+
+Check `miloco-lite status` first. If it shows `is_bound: true`, you are already logged in — skip login (token auto-refreshes; `expires_ts` is the Unix expiry). Only do the flow below when `is_bound: false`.
+
+Login is a 3-step OAuth that **needs the user** (browser auth + paste a code):
+
+1. `miloco-lite login` — prints a `account.xiaomi.com/oauth2/authorize?...` URL. Give that URL to the user.
+2. User opens it in a browser, logs in with their Xiaomi account, approves. The callback page (`mico.api.mijia.tech/login_redirect`) then shows a **base64 authorization code**. Ask the user to copy and paste it back to you.
+3. `miloco-lite authorize <that base64 code>` — completes login.
+
+**Do NOT run `login --help` or `authorize --help`.** These subcommands have no separate help: `login --help` triggers a real login, `authorize --help` tries to decode `--help` as a code and errors. For flags use the top-level `miloco-lite --help` only.
+
+If the machine has no browser / restricted network, the user must open the URL on another device; the code is just text they paste back — it does not need to reach this machine.
+
 ## Quick reference
 
 | Command | Purpose |
