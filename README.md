@@ -131,3 +131,7 @@ action <did> <siid.aiid> [in...]         动作
 - token、device_id 仅存本地 `~/.openclaw/miloco-lite/`
 - 直连小米官方 `mico.api.mijia.tech`，不经任何第三方
 - 不含任何 client_secret（该 OAuth 应用不需要）
+
+## 给 AI Agent 用
+
+`skills/miloco-lite/SKILL.md` 是一份给 AI agent（Claude Code 等）的技能文档，教它正确调用本工具。放进 agent 的 skills 目录后，agent 收到"开个灯""把空调调到 26 度"之类请求会自动按正确流程操作（含一个关键坑：写操作返回 `code:1` 却实际成功，必须 `props` 回读确认）。
