@@ -1,0 +1,25 @@
+[project]
+name = "miloco-lite"
+version = "0.1.0"
+description = "独立的小米米家设备 CLI（登录 + 查设备 + 控制设备），不依赖 miloco 后端"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "六六RyuRyu" }]
+dependencies = [
+  "httpx>=0.28",
+  "cryptography>=42",
+]
+
+[project.scripts]
+miloco-lite = "miloco_lite.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/miloco_lite"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
