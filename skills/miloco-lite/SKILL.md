@@ -77,10 +77,38 @@ miloco-lite props 1166187070 2.2
 
 Xiaomi cloud returns an unreliable code for writes (especially light groups `group.xxx`). Confirm success by: value changed to target, read `code:0`, and `updateTime` advanced. Never report success or failure based on the control call's `code`.
 
+**Exception — read-back fails on write-only properties (see Device types below).** If `props` returns an error code with no `value` (e.g. `-704030013`), the property is write-only; you cannot confirm via read-back. Don't loop retrying — the command likely worked.
+
+## Device types — not everything is a light
+
+The light/fan examples above assume properties are `wr` (readable). Other device classes differ. **Always run `spec` first and read the `access` column + whether the entry is a property or action.**
+
+**Infrared (IR) devices** — `did` starts with `ir.`, model `miir.*` (e.g. AC via a Mi IR remote):
+- Properties are often `w` (write-only). `props` on them returns an error with no `value` — **read-back confirmation does NOT work**. Success can only be judged by the physical device (you hear/see it react). Don't retry on the missing read-back.
+- Power is usually an **action**, not a property: e.g. AC has `turn-on`/`turn-off` actions, not an `on` property. To turn on: `action <did> 2.6`, not `control <did> 2.1 true`.
+- **Property and action share the siid.piid space and numbers collide.** On one AC, `2.1` is property `ir-mode` (via `control`) AND action `fan-speed-down` (via `action`). Same `2.1`, different verb, different effect. Pick `control` vs `action` deliberately from spec.
+
+**Speakers** (`*.wifispeaker.*`): TTS / play are actions — use `action`, not `control`.
+
+**Sensors** (`*.sensor_*`, gas/temp/humidity): read-only. Use `props` to read; there is nothing to `control`.
+
+**Plugs** (`*.plug.*`): like a light's `on` — `control <did> 2.1 true/false`.
+
+### Choosing control vs action
+
+| You want to… | Use | Why |
+|---|---|---|
+| Set a value (temp, brightness, mode) | `control` (property is `wr`/`w`) | it's a settable property |
+| Trigger a one-shot (turn-on, toggle, TTS, fan-speed-up) | `action` | it's an action in spec |
+
+When unsure, `spec` shows it: settable things appear under `properties`, one-shots under `actions`.
+
 ## Common mistakes
 
 - ❌ Reporting "failed" because `control` returned `code:1` → always read back with `props`.
-- ❌ Guessing iids without `spec` → wrong service/piid, or hitting the fan when meaning the light.
+- ❌ Looping retries when `props` read-back returns an error with no value → it's a write-only/IR property; read-back can't confirm. Stop.
+- ❌ Using `control <did> 2.1 true` to power on an IR device → it has no `on` property; use the `turn-on` **action**.
+- ❌ Guessing iids without `spec` → wrong service/piid, control-vs-action mixup, or hitting the fan when meaning the light.
 - ❌ Setting multiple devices when the user named one → operate only the requested `did`/service.
 - ❌ Re-running `login` when already logged in → check `status` first; token persists and auto-refreshes.
 
